@@ -89,6 +89,7 @@ section .back-arrow {
     display: flex;
     justify-content: flex-end;
     align-items: flex-start;
+    cursor: pointer;
 
     img {
       width: 20%;
