@@ -48,6 +48,7 @@ async function getData() {
   jsonPrices = await jsonPrices.json();
   console.log({ jsonData });
 
+  //tømmer basket
   basket = [];
   //Sæt kurv til 0
   document.querySelector("#basketamount").innerHTML = 0;
