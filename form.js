@@ -4,9 +4,9 @@
 
 window.addEventListener("DOMContentLoaded", init);
 
-let jsonData; 
-let jsonPrices; 
-let basket = []; 
+let jsonData;
+let jsonPrices;
+let basket = [];
 let order = [];
 let total = 0;
 
@@ -15,167 +15,177 @@ function init() {
   document.querySelector(".buttontobasket").addEventListener("click", buildBasket);
   document.querySelector(".singleviewtobasket").addEventListener("click", buildBasket);
   document.querySelector(".baskettopayment").addEventListener("click", listenForClickOnSubmit);
-  document.querySelector("#buttonbacktobasketoverview").addEventListener("click", () => {document.querySelector("#basket-payment").classList.add("hide"); document.querySelector("#basket-overview").classList.remove("hide");});
+  document.querySelector("#buttonbacktobasketoverview").addEventListener("click", () => {
+    document.querySelector("#basket-payment").classList.add("hide");
+    document.querySelector("#basket-overview").classList.remove("hide");
+  });
   //document.querySelector(".betalordre").addEventListener("click", post);
   document.querySelector(".buttontomenu").addEventListener("click", getData);
   document.querySelector(".buttonbacktomenu").addEventListener("click", backToMenu);
+
+  document.querySelector(".basket").addEventListener("click", buildBasket);
 }
 
 async function getData() {
-  document.querySelector("#menu").classList.remove("hide"); 
+  document.querySelector("#menu").classList.remove("hide");
   document.querySelector("#header").classList.remove("hide");
   document.querySelector("#frontpage").classList.add("hide");
   document.querySelector("#emptybasket-overview").classList.add("hide");
 
   //Pil tilbage til forsiden fra menu
-  document.querySelector("#buttontofrontpage").addEventListener("click",() => {document.querySelector("#menu").classList.add("hide"); document.querySelector("#frontpage").classList.remove("hide"); document.querySelector("#header").classList.add("hide");});
+  document.querySelector("#buttontofrontpage").addEventListener("click", () => {
+    document.querySelector("#menu").classList.add("hide");
+    document.querySelector("#frontpage").classList.remove("hide");
+    document.querySelector("#header").classList.add("hide");
+  });
 
   let url = "https://teamellewoods.herokuapp.com/beertypes";
   jsonData = await fetch(url);
   jsonData = await jsonData.json();
 
-  let prices = "./prices.json"; 
+  let prices = "./prices.json";
   jsonPrices = await fetch(prices);
   jsonPrices = await jsonPrices.json();
   console.log({ jsonData });
+
+  basket = [];
+  //Sæt kurv til 0
+  document.querySelector("#basketamount").innerHTML = 0;
 
   let container = document.querySelector(".menu-container");
   //Tømmer container så listen med øl ikke lægges ind flere gange
   container.innerHTML = "";
   let temp = document.querySelector(".beertemplate");
- 
-  //i = index 
+
+  //i = index
   jsonData.forEach((beer, i) => {
-
     //Tilføjer plads i basket array
-    basket.push(0); 
+    basket.push(0);
 
-    const beertype = [{ name: beer.name, amount: 1 }]; 
-    fetchBeerStatus(beertype).then(beerdata => {
-    
-    //Hvis status er lig 200 (på lager) så klon øllen i menuen
-    if(beerdata.status===200){
-    const clone = temp.cloneNode(true).content;
+    const beertype = [{ name: beer.name, amount: 1 }];
+    fetchBeerStatus(beertype).then((beerdata) => {
+      //Hvis status er lig 200 (på lager) så klon øllen i menuen
+      if (beerdata.status === 200) {
+        const clone = temp.cloneNode(true).content;
 
-    //Input feltet viser id for den valgte øl 
-    clone.querySelector("#beer_").id = "beer_" + i;
-    clone.querySelector("#beer_" + i).addEventListener("change", updateBasket); 
+        //Input feltet viser id for den valgte øl
+        clone.querySelector("#beer_").id = "beer_" + i;
+        clone.querySelector("#beer_" + i).addEventListener("change", updateBasket);
 
-    clone.querySelector(".beer-image").src = `./img/beer/${beer.label}`;
-    clone.querySelector(".beer-image").addEventListener("click", () => showDetails(i));
+        clone.querySelector(".beer-image").src = `./img/beer/${beer.label}`;
+        clone.querySelector(".beer-image").addEventListener("click", () => showDetails(i));
 
-    clone.querySelector(".beer-name").textContent = beer.name;
-    clone.querySelector(".beer-price").textContent = jsonPrices[i].price + " kr.";
-    clone.querySelector(".alc").textContent = beer.alc + "% alc.";
+        clone.querySelector(".beer-name").textContent = beer.name;
+        clone.querySelector(".beer-price").textContent = jsonPrices[i].price + " kr.";
+        clone.querySelector(".alc").textContent = beer.alc + "% alc.";
 
-    container.appendChild(clone);
-    
-    }
+        container.appendChild(clone);
+      }
+    });
   });
-});
 
-  console.log(basket); 
-
+  console.log(basket);
 }
 
-function backToMenu(){
+function backToMenu() {
   console.log("Du er på startsiden");
 
   document.querySelector("#menu").classList.remove("hide");
   document.querySelector("#emptybasket-overview").classList.add("hide");
 
+  //Ændre overskrift i header
+  document.querySelector("#header h1").textContent = "Menu";
+  document.querySelector("#header h1").style.fontSize = "5em";
+
   //Sæt inputfelter til 0
   document.querySelectorAll(".input-beer").forEach((beer) => {
-    beer.value = 0; 
+    beer.value = 0;
   });
-  
+
   //Sæt kurv til 0
-  document.querySelector("#basketamount").innerHTML = 0;  
-
+  document.querySelector("#basketamount").innerHTML = 0;
 }
 
-function showDetails(i){
-console.log("Vis deltajer om øl"); 
+function showDetails(i) {
+  console.log("Vis deltajer om øl");
 
-document.querySelector("#beer-single").classList.remove("hide"); 
-document.querySelector("#menu").classList.add("hide"); 
-document.querySelector("#buttonbacktomenu").addEventListener("click", updateInput); 
+  document.querySelector("#beer-single").classList.remove("hide");
+  document.querySelector("#menu").classList.add("hide");
+  document.querySelector("#buttonbacktomenu").addEventListener("click", updateInput);
 
-document.querySelector(".beersingle-input").id = "beersingle_" + i; 
+  document.querySelector(".beersingle-input").id = "beersingle_" + i;
 
-document.querySelector("#beersingle_" + i ).addEventListener("change", updateBasket); 
+  document.querySelector("#beersingle_" + i).addEventListener("change", updateBasket);
 
-//Opdater inputfelt med antal
-document.querySelector("#beersingle_" + i).value = basket[i];
+  //Opdater inputfelt med antal
+  document.querySelector("#beersingle_" + i).value = basket[i];
 
-document.querySelector("#beer-single .beer-image").src = `img/beer/${jsonData[i].label}`;
-document.querySelector("#header h1").textContent = `${jsonData[i].name}`;
-document.querySelector("#header h1").style.fontSize = "1.8em"; 
+  document.querySelector("#beer-single .beer-image").src = `img/beer/${jsonData[i].label}`;
+  document.querySelector("#header h1").textContent = `${jsonData[i].name}`;
+  document.querySelector("#header h1").style.fontSize = "1.8em";
 
-document.querySelector("#beer-single .beer-name").textContent = jsonData[i].name;
-document.querySelector("#beer-single .beer-price").textContent = jsonPrices[i].price + " kr.";
-document.querySelector("#beer-single .alc").textContent = jsonData[i].alc + "% alc.";
-document.querySelector("#beer-single .desc").textContent = jsonData[i].description.aroma;
+  document.querySelector("#beer-single .beer-name").textContent = jsonData[i].name;
+  document.querySelector("#beer-single .beer-price").textContent = jsonPrices[i].price + " kr.";
+  document.querySelector("#beer-single .alc").textContent = jsonData[i].alc + "% alc.";
+  document.querySelector("#beer-single .desc").textContent = jsonData[i].description.aroma;
 
-document.querySelector(".singleviewtobasket")
-
+  document.querySelector(".singleviewtobasket");
 }
 
-function updateBasket(){
+function updateBasket() {
   console.log("Update basket");
-  //.split = splitter id_x 
+  //.split = splitter id_x
   //.pop = kun den sidste værdi (x) der bliver gemt i arrayet
   let beerid = this.id.split("_").pop();
   let thisname = this.id.split("_").shift();
   console.log(beerid);
   console.log(thisname);
 
-  if(thisname == "removebutton"){
+  if (thisname == "removebutton") {
     //Vælger plads i array der stemmer overens med beerid og sætter værdien til 0 (fjerner alle)
-    basket[beerid] = 0; 
-    buildBasket(); 
+    basket[beerid] = 0;
+    buildBasket();
   } else {
     //Vælger plads i array der stemmer overens med beerid og gemmer værdi fra inputfeltet som et nummer
-    basket[beerid] = Number(this.value); 
+    basket[beerid] = Number(this.value);
   }
 
   console.log(basket);
 
   //Opdater antal øl i kurven (vist i menulinje)
-  document.querySelector("#basketamount").innerHTML = (basket.reduce((a,b) => a+b)).toString();
+  document.querySelector("#basketamount").innerHTML = basket.reduce((a, b) => a + b).toString();
 
-  total = 0; 
+  total = 0;
 
-    //buildBasket();
-    basket.forEach((beer, i) => {
-      if(beer!=0){
-        total += beer * jsonPrices[i].price;
-      }
-      }); 
+  //buildBasket();
+  basket.forEach((beer, i) => {
+    if (beer != 0) {
+      total += beer * jsonPrices[i].price;
+    }
+  });
   document.querySelector(".totalprice").textContent = total + " kr.";
 }
 
-function buildBasket(){
+function buildBasket() {
   console.log("build basket");
 
-    document.querySelector("#menu").classList.add("hide"); 
-    document.querySelector("#beer-single").classList.add("hide"); 
-    document.querySelector("#basket-overview").classList.remove("hide"); 
-    document.querySelector("#buttonbaskettomenu").addEventListener("click", updateInput); 
+  document.querySelector("#menu").classList.add("hide");
+  document.querySelector("#beer-single").classList.add("hide");
+  document.querySelector("#basket-overview").classList.remove("hide");
+  document.querySelector("#buttonbaskettomenu").addEventListener("click", updateInput);
 
-    //Rul til toppen
-    window.scrollTo(0,0);
+  //Rul til toppen
+  window.scrollTo(0, 0);
 
-    //Ændre overskrift i header
-    document.querySelector("#header h1").textContent = "Kurv";
+  //Ændre overskrift i header
+  document.querySelector("#header h1").textContent = "Kurv";
 
-    //Hvis der er nogle øl i kurven, skriv antal ud 
-    if((basket.reduce((a,b) => a+b)) != 0){
-      
+  //Hvis der er nogle øl i kurven, skriv antal ud
+  if (basket.reduce((a, b) => a + b) != 0) {
     let container = document.querySelector(".basket-container");
     let temp = document.querySelector(".baskettemplate");
 
-    //Nulstiller totalprisen 
+    //Nulstiller totalprisen
     total = 0;
 
     //Tømmer HTML/kurven
@@ -183,34 +193,34 @@ function buildBasket(){
 
     console.log(basket);
     basket.forEach((beer, i) => {
-      //Hvis antallet af en bestemt øl er større end 0, så clon den 
-      if(beer!=0){
-      const clone = temp.cloneNode(true).content;
-  
-      //Opdater total pris
-      total += beer * jsonPrices[i].price;
+      //Hvis antallet af en bestemt øl er større end 0, så clon den
+      if (beer != 0) {
+        const clone = temp.cloneNode(true).content;
 
-      //Input feltet viser id for den valgte øl 
-      clone.querySelector("#beerbasket_").id = "beerbasket_" + i;
-      clone.querySelector("#beerbasket_" + i).addEventListener("change", updateBasket); 
-  
-      clone.querySelector(".beer-image").src = `./img/beer/${jsonData[i].label}`;
-      clone.querySelector(".beer-name").textContent = jsonData[i].name;
-      clone.querySelector(".beer-price").textContent = jsonPrices[i].price + " kr.";
-      clone.querySelector(".alc").textContent = jsonData[i].alc + "% alc.";
-      clone.querySelector(".beer-amount").value = beer;
+        //Opdater total pris
+        total += beer * jsonPrices[i].price;
 
-      //Fjern item fra kurv
-      clone.querySelector("#removebutton_").id = "removebutton_" + i;
-      clone.querySelector("#removebutton_" + i).addEventListener("click", updateBasket);
-  
-      container.appendChild(clone);
+        //Input feltet viser id for den valgte øl
+        clone.querySelector("#beerbasket_").id = "beerbasket_" + i;
+        clone.querySelector("#beerbasket_" + i).addEventListener("change", updateBasket);
+
+        clone.querySelector(".beer-image").src = `./img/beer/${jsonData[i].label}`;
+        clone.querySelector(".beer-name").textContent = jsonData[i].name;
+        clone.querySelector(".beer-price").textContent = jsonPrices[i].price + " kr.";
+        clone.querySelector(".alc").textContent = jsonData[i].alc + "% alc.";
+        clone.querySelector(".beer-amount").value = beer;
+
+        //Fjern item fra kurv
+        clone.querySelector("#removebutton_").id = "removebutton_" + i;
+        clone.querySelector("#removebutton_" + i).addEventListener("click", updateBasket);
+
+        container.appendChild(clone);
       }
-  });
+    });
 
     //Skriv total pris ud
     document.querySelector(".totalprice").textContent = total + " kr.";
-  }else{
+  } else {
     //Hvis kurven er tom - vis tom kurv side
     document.querySelector("#emptybasket-overview").classList.remove("hide");
     document.querySelector("#basket-overview").classList.add("hide");
@@ -218,160 +228,152 @@ function buildBasket(){
 }
 
 //Kaldes når man går fra kurv/singleview til menu og opdaterer inputfelterne med valgte antal øl
-function updateInput(){
-    document.querySelector("#menu").classList.remove("hide"); 
-    document.querySelector("#basket-overview").classList.add("hide"); 
-    document.querySelector("#beer-single").classList.add("hide"); 
+function updateInput() {
+  document.querySelector("#menu").classList.remove("hide");
+  document.querySelector("#basket-overview").classList.add("hide");
+  document.querySelector("#beer-single").classList.add("hide");
 
-    //Overskrift menu i header
-    document.querySelector("#header h1").innerHTML = "Menu";
+  //Overskrift menu i header
+  document.querySelector("#header h1").innerHTML = "Menu";
+  document.querySelector("#header h1").style.fontSize = "3em";
 
-    //Løb gennem array og opdater antal øl
-    basket.forEach((beer, i) => {
-
+  //Løb gennem array og opdater antal øl
+  basket.forEach((beer, i) => {
     //Tjek om øllen er på listen, hvis ja opdater value
-    if(document.querySelector("#beer_" + i)!==null){
-    document.querySelector("#beer_" + i).value = beer; 
+    if (document.querySelector("#beer_" + i) !== null) {
+      document.querySelector("#beer_" + i).value = beer;
     }
-  });  
+  });
 }
 
-function listenForClickOnSubmit(){ 
-  console.log("der er klikket på gå til betaling"); 
-  document.querySelector("#basket-overview").classList.add("hide"); 
+function listenForClickOnSubmit() {
+  console.log("der er klikket på gå til betaling");
+  document.querySelector("#basket-overview").classList.add("hide");
   document.querySelector("#basket-payment").classList.remove("hide");
   //document.querySelector(".betalordre").addEventListener("click", post);
 
   //Rul til toppen
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 
   //Ændre overskrift i header
   document.querySelector("#header h1").textContent = "Betaling";
-  document.querySelector("#header h1").style.fontSize = "3em"; 
+  document.querySelector("#header h1").style.fontSize = "3em";
 
   order = [];
 
-  const form = document.querySelector("form"); 
+  const form = document.querySelector("form");
   //console.log(basket);
 
   basket.forEach((beer, i) => {
-  if(beer!=0){
-    
-  //Pusher object til array så det bliver json
-  order.push({ name: jsonData[i].name, amount: beer });
-  console.log(order); 
+    if (beer != 0) {
+      //Pusher object til array så det bliver json
+      order.push({ name: jsonData[i].name, amount: beer });
+      console.log(order);
     }
-});
-    
-    // export function sendData(){
-    form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    
-    // const beertype = document.querySelector(".beertype"); 
-    // const beeramount = document.querySelector(".beeramount"); 
-    // console.log(e.elements.beertype.value); 
-    // console.log(beeramount.value); 
+  });
 
+  // export function sendData(){
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    // const beertype = document.querySelector(".beertype");
+    // const beeramount = document.querySelector(".beeramount");
+    // console.log(e.elements.beertype.value);
+    // console.log(beeramount.value);
   });
 }
 
-async function fetchBeerStatus(data){
-  console.log(data)
-  
-  const endpoint = "https://teamellewoods.herokuapp.com/order"; 
+async function fetchBeerStatus(data) {
+  console.log(data);
+
+  const endpoint = "https://teamellewoods.herokuapp.com/order";
   const tempdata = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  }); 
-  
+  });
+
   return await tempdata.json();
 }
 
-export async function post(){
+export async function post() {
+  const endpoint = "https://teamellewoods.herokuapp.com/order";
 
-  const endpoint = "https://teamellewoods.herokuapp.com/order"; 
-
-    await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(order),
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Success:', data);
+  await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(order),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Success:", data);
       //hent data.id
-      console.log(data.id); 
+      console.log(data.id);
       orderConfirmation(data.id);
     })
     .catch((error) => {
-      console.error('Error:', error);
+      console.error("Error:", error);
+    });
+}
+
+function orderConfirmation(id) {
+  console.log("tak for din ordre");
+  document.querySelector("#confirmation").classList.remove("hide");
+  document.querySelector("#basket-payment").classList.add("hide");
+
+  //Rul til toppen
+  window.scrollTo(0, 0);
+
+  //Ændre overskrift i header
+  document.querySelector("#header h1").textContent = "Bekræftelse";
+  document.querySelector("#header h1").style.fontSize = "3em";
+
+  //Indsæt ordre id i tekst
+  document.querySelector(".ordreid").innerHTML = id;
+  console.log(id);
+
+  //Tøm kurv og nulstil input
+  basket.forEach((beer, i) => {
+    basket[i] = 0;
+  });
+
+  document.querySelectorAll(".input-beer").forEach((beer) => {
+    beer.value = 0;
+  });
+
+  document.querySelector("#basketamount").innerHTML = 0;
+
+  //Nulstil inputfelter betaling
+  document.querySelector("#cardholder_name").value = "";
+  document.querySelector("#cardholder_name").style.backgroundColor = "";
+  document.querySelector("#cardholder_name").style.color = "none";
+
+  document.querySelector("#ccnum").value = "";
+  document.querySelector("#ccnum").style.backgroundColor = "";
+  document.querySelector("#ccnum").style.color = "none";
+
+  document.querySelector("#month").value = "";
+  document.querySelector("#month").style.backgroundColor = "";
+  document.querySelector("#month").style.color = "none";
+
+  document.querySelector("#year").value = "";
+  document.querySelector("#year").style.backgroundColor = "";
+  document.querySelector("#year").style.color = "none";
+
+  document.querySelector("#ccv").value = "";
+  document.querySelector("#ccv").style.backgroundColor = "";
+  document.querySelector("#ccv").style.color = "none";
+
+  document.querySelector(".buttontofrontpagefromconfirmation").addEventListener("click", () => {
+    document.querySelector("#confirmation").classList.add("hide");
+    document.querySelector("#frontpage").classList.remove("hide");
+    document.querySelector("#header h1").textContent = "Menu";
+    document.querySelector("#header h1").style.fontSize = "3em";
+    //Rul til toppen
+    window.scrollTo(0, 0);
   });
 }
-
-function orderConfirmation(id){
-console.log("tak for din ordre"); 
-document.querySelector("#confirmation").classList.remove("hide");
-document.querySelector("#basket-payment").classList.add("hide");
-
-//Rul til toppen
-window.scrollTo(0,0);
-
-//Ændre overskrift i header
-document.querySelector("#header h1").textContent = "Bekræftelse";
-document.querySelector("#header h1").style.fontSize = "3em"; 
-
-//Indsæt ordre id i tekst
-document.querySelector(".ordreid").innerHTML = id;
-console.log(id); 
-
-//Tøm kurv og nulstil input
-basket.forEach((beer, i) => {
-  basket[i] = 0; 
-  
-});
-
-document.querySelectorAll(".input-beer").forEach((beer) => {
-  beer.value = 0; 
-});
-
-document.querySelector("#basketamount").innerHTML = 0;
-
-//Nulstil inputfelter betaling
-document.querySelector("#cardholder_name").value = "";
-document.querySelector("#cardholder_name").style.backgroundColor = "";
-document.querySelector("#cardholder_name").style.color = "none";
-
-document.querySelector("#ccnum").value = "";
-document.querySelector("#ccnum").style.backgroundColor = "";
-document.querySelector("#ccnum").style.color = "none";
-
-
-document.querySelector("#month").value = "";
-document.querySelector("#month").style.backgroundColor = "";
-document.querySelector("#month").style.color = "none";
-
-document.querySelector("#year").value = "";
-document.querySelector("#year").style.backgroundColor = "";
-document.querySelector("#year").style.color = "none";
-
-document.querySelector("#ccv").value = "";
-document.querySelector("#ccv").style.backgroundColor = "";
-document.querySelector("#ccv").style.color = "none";
-
-
-document.querySelector(".buttontofrontpagefromconfirmation").addEventListener("click", () => {document.querySelector("#confirmation").classList.add("hide"); document.querySelector("#frontpage").classList.remove("hide"); document.querySelector("#header h1").textContent = "Menu"; //Rul til toppen
-window.scrollTo(0,0);});
-
-}
-
-
-
-
-
-
-

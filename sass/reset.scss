@@ -17,4 +17,7 @@ html {
 
 body {
   background-color: rgb(242, 218, 196);
+  button:active {
+    transform: translateY(4px);
+  }
 }

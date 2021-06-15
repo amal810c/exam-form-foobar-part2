@@ -188,6 +188,11 @@ h2 {
 //SINGLEVIEW
 #beer-single {
   margin-top: 10em;
+
+  input[type="number"] {
+    font-size: 3.5em;
+    width: 50%;
+  }
 }
 
 .beer-single-info {
