@@ -175,6 +175,8 @@ function buildBasket() {
   document.querySelector("#basket-overview").classList.remove("hide");
   document.querySelector("#buttonbaskettomenu").addEventListener("click", updateInput);
 
+  document.querySelector("#basket-payment").classList.add("hide");
+
   //Rul til toppen
   window.scrollTo(0, 0);
 
